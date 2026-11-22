@@ -17,10 +17,13 @@ requires-python = ">=3.10"
 killprocs = "gen_utils.utils.killprocs:main"
 killjobs = "gen_utils.utils.killjobs:main"
 pyncdump = "gen_utils.utils.ncdump:main"
-set_execution = "gen_utils.set_execution:main"
+set_execution = "gen_utils.utils.set_execution:main"
 
 [tool.hatch.version]
 source = "vcs"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/gen_utils"]
 
 [tool.hatch.build.hooks.vcs]
 version-file = "src/gen_utils/_version.py"
@@ -39,9 +42,13 @@ hatch = ">=1.16.3,<2"
 ghp-import = ">=2.1.0,<3"
 jupyter-book = "*"
 mystmd = ">=1.13.0,<2"
+pytest = ">=9.2.0,<10"
 
 [tool.pixi.pypi-dependencies]
 gen_utils = { path = ".", editable = true }
 
 
 
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
