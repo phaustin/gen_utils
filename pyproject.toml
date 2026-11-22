@@ -17,6 +17,7 @@ requires-python = ">=3.10"
 killprocs = "gen_utils.utils.killprocs:main"
 killjobs = "gen_utils.utils.killjobs:main"
 pyncdump = "gen_utils.utils.ncdump:main"
+set_execution = "gen_utils.set_execution:main"
 
 [tool.hatch.version]
 source = "vcs"
