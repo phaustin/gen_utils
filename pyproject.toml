@@ -43,6 +43,7 @@ ghp-import = ">=2.1.0,<3"
 jupyter-book = "*"
 mystmd = ">=1.13.0,<2"
 pytest = ">=9.2.0,<10"
+setuptools_scm = ">=10.3.4,<11"
 
 [tool.pixi.pypi-dependencies]
 gen_utils = { path = ".", editable = true }
