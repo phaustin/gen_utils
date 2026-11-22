@@ -4,3 +4,4 @@
 !.pixi/config.toml
 
 src/gen_utils/_version.py
+output/

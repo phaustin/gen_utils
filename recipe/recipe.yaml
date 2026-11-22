@@ -1,0 +1,77 @@
+# rattler-build recipe: pixi run build-conda
+# builds one noarch package that installs on linux, osx and win
+context:
+  name: gen_utils
+  version: "0.2.0"        # keep in step with the git tag (v0.2.0)
+  python_min: "3.10"
+
+package:
+  name: ${{ name }}
+  version: ${{ version }}
+
+source:
+  path: ..
+
+build:
+  number: 0
+  noarch: python
+  script:
+    env:
+      # hatch-vcs normally reads the version from git; pin it to the recipe
+      SETUPTOOLS_SCM_PRETEND_VERSION: ${{ version }}
+    content: ${{ PYTHON }} -m pip install . -vv --no-deps --no-build-isolation
+  python:
+    # declared here (not just in pyproject) so conda creates the right
+    # launchers on each platform, e.g. killprocs.exe on windows
+    entry_points:
+      - killprocs = gen_utils.utils.killprocs:main
+      - killjobs = gen_utils.utils.killjobs:main
+      - pyncdump = gen_utils.utils.ncdump:main
+      - set_execution = gen_utils.utils.set_execution:main
+
+requirements:
+  host:
+    - python ${{ python_min }}.*
+    - pip
+    - hatchling
+    - hatch-vcs
+  run:
+    - python >=${{ python_min }}
+    - numpy
+    - psutil
+    - netcdf4
+    - click
+    - nbformat
+    - pyyaml
+    - jupytext
+
+tests:
+  - python:
+      imports:
+        - gen_utils
+        - gen_utils.utils.helper_funs
+        - gen_utils.utils.killprocs
+        - gen_utils.utils.killjobs
+        - gen_utils.utils.ncdump
+        - gen_utils.utils.set_execution
+      pip_check: true
+      python_version: ${{ python_min }}.*
+  - script:
+      - killprocs --help
+      - killjobs --help
+      - pyncdump --help
+      - set_execution --help
+  - files:
+      source:
+        - tests/
+    requirements:
+      run:
+        - pytest
+    script:
+      - pytest tests -q
+
+about:
+  summary: common utility scripts
+  license: BSD-3-Clause
+  license_file: LICENSE
+  homepage: https://github.com/phaustin/gen_utils

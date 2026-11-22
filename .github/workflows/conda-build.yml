@@ -1,0 +1,42 @@
+name: test and build conda package
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0   # hatch-vcs needs the tags to compute the version
+
+      - uses: prefix-dev/setup-pixi@v0.11.3
+        with:
+          pixi-version: v0.84.1
+          cache: true
+          locked: true     # fail if pixi.lock is out of date with pyproject.toml
+
+      - name: run tests
+        run: pixi run pytest
+
+      - name: build and test conda package
+        run: pixi run build-conda
+
+      # the package is noarch, so one copy (from linux) is enough
+      - name: upload package
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v7
+        with:
+          name: gen_utils-conda
+          path: output/noarch/*.conda
