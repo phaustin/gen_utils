@@ -55,6 +55,7 @@ mystmd = ">=1.13.0,<2"
 pytest = ">=9.2.0,<10"
 rattler-build = "*"
 setuptools_scm = ">=10.3.4,<11"
+anaconda-auth = ">=0.15.3,<0.16"
 
 [tool.pixi.tasks]
 build-conda = "rm -rf output && rattler-build build --recipe recipe/recipe.yaml --output-dir output"
