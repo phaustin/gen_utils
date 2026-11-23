@@ -1,7 +1,17 @@
 """
-  recursively dump netcdf file metadata -- taken from:
+Print the metadata of a netCDF file: global attributes, dimensions
+(with sizes) and variables (with dimensions, sizes, types and
+attributes), similar to "ncdump -h".  No data values are printed.
 
-  http://schubert.atmos.colostate.edu/~cslocum/netcdf_example.html
+If the file has groups, variables are listed for each top-level group;
+otherwise they are listed for the root group.
+
+Adapted from:
+    http://schubert.atmos.colostate.edu/~cslocum/netcdf_example.html
+
+Examples:
+    pyncdump data/era5_2020.nc
+    pyncdump output.nc | less
 """
 
 import argparse
@@ -28,10 +38,11 @@ def ncdump(nc_fid, verb=True):
     nc_dims : list
         A Python list of the NetCDF file dimensions
     nc_vars : list
-        A Python list of the NetCDF file variables
+        Names of the variables in each top-level group (or in the root
+        group if the file has no groups)
     '''
 
-    def print_ncattr(key):
+    def print_ncattr(key, group=None):
         """
         Prints the NetCDF file attributes for a given key
 
@@ -39,12 +50,15 @@ def ncdump(nc_fid, verb=True):
         ----------
         key : unicode
             a valid netCDF4.Dataset.variables key
+        group : netCDF4.Group, optional
+            group holding the variable; defaults to the root group
         """
+        variables = (nc_fid if group is None else group).variables
         try:
-            print("\t\ttype:", repr(nc_fid.variables[key].dtype))
-            for ncattr in nc_fid.variables[key].ncattrs():
+            print("\t\ttype:", repr(variables[key].dtype))
+            for ncattr in variables[key].ncattrs():
                 print('\t\t%s:' % ncattr,\
-                      repr(nc_fid.variables[key].getncattr(ncattr)))
+                      repr(variables[key].getncattr(ncattr)))
         except KeyError:
             print("\t\tWARNING: %s does not contain variable attributes" % key)
 
@@ -62,22 +76,23 @@ def ncdump(nc_fid, verb=True):
             print("\tName:", dim)
             print("\t\tsize:", len(nc_fid.dimensions[dim]))
             print_ncattr(dim)
-    # Variable information.
-    
-    if verb:
-        groups=list(nc_fid.groups.items())
-        if not groups:
-            group_name="root"
-            groups = [(group_name,nc_fid)]
-        for group_name, group in groups:
+    # Variable information: one entry per top-level group, or the root group
+    # if there are none.  nc_vars collects the variable names from all of them.
+    groups = list(nc_fid.groups.items())
+    if not groups:
+        groups = [("root", nc_fid)]
+    nc_vars = []
+    for group_name, group in groups:
+        group_vars = list(group.variables)
+        nc_vars.extend(group_vars)
+        if verb:
             print(f"NetCDF variable information for group {group_name}:")
-            nc_vars = [var for var in group.variables]  # list of nc variables
-            for var in nc_vars:
+            for var in group_vars:
                 if var not in nc_dims:
                     print('\tName:', var)
                     print("\t\tdimensions:", group.variables[var].dimensions)
                     print("\t\tsize:", group.variables[var].size)
-                    print_ncattr(var)
+                    print_ncattr(var, group)
     return nc_attrs, nc_dims, nc_vars
 
 def make_parser():

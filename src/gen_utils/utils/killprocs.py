@@ -1,14 +1,19 @@
 #!/usr/bin/env python
 """
-   example:
+Terminate every process whose command line contains SNIP.
 
-   killprocs python
+SNIP is matched as a plain substring against the full command line
+(program plus arguments, joined with spaces), so it can match a script
+name or an argument as well as the program itself.  Each match is sent
+SIGTERM; anything still running after 3 seconds is sent SIGKILL.
 
-   will kill all processes with python in the name
+Processes whose command line contains "killprocs" or "elpy" are never
+touched, and processes you are not allowed to inspect are skipped.
 
-   requires:
-      
-      conda install psutil
+Examples:
+    killprocs jupyter       # stop all jupyter servers and kernels
+    killprocs my_model.py   # stop runs of a particular script
+    killprocs python        # stop every python process (careful!)
 """
 import psutil
 from .helper_funs import make_tuple
@@ -26,7 +31,8 @@ def make_parser():
     descrip = textwrap.dedent(globals()['__doc__'])
     parser = argparse.ArgumentParser(formatter_class=linebreaks,
                                      description=descrip)
-    parser.add_argument('snip', type=str, help='string in processname')
+    parser.add_argument('snip', type=str,
+                        help='text to look for in the command line')
     return parser
 
 def main(args=None):

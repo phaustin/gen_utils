@@ -1,18 +1,19 @@
 #!/usr/bin/env python
 """
-   example:
+Terminate every process whose executable path contains SNIP.
 
-   killjobs mini3
+Unlike killprocs, SNIP is matched only against the full path of the
+running executable (e.g. /Users/me/miniforge3/bin/python3.12), not
+against its arguments.  That makes it handy for stopping everything
+launched from one installation or environment.  Each match is sent
+SIGTERM; anything still running after 3 seconds is sent SIGKILL.
 
-   will kill all processes with mini3 in the name
+Processes whose command line contains "killjobs" or "elpy" are never
+touched, and processes you are not allowed to inspect are skipped.
 
-   requires  this package from conda:
-      https://pythonhosted.org/psutil/
-
-   so do::
-
-      conda install psutil
-
+Examples:
+    killjobs miniforge3     # stop everything run from ~/miniforge3
+    killjobs envs/work      # stop everything run from the "work" env
 """
 import psutil
 from .helper_funs import make_tuple
@@ -30,7 +31,8 @@ def make_parser():
     descrip = textwrap.dedent(globals()['__doc__'])
     parser = argparse.ArgumentParser(formatter_class=linebreaks,
                                      description=descrip)
-    parser.add_argument('snip', type=str, help='string in processname')
+    parser.add_argument('snip', type=str,
+                        help='text to look for in the executable path')
     return parser
 
 
@@ -44,17 +46,13 @@ def main(args=None):
     keepit = {}
     keys = ['time', 'name', 'cmdline', 'proc']
     for proc in psutil.process_iter():
-        print(f'interating {proc}')
         try:
             the_dict = dict(zip(keys, (proc.create_time(), proc.exe(),
                                        proc.cmdline(), proc)))
             keepit[proc.pid] = make_tuple(the_dict)
         except (psutil.ZombieProcess, psutil.AccessDenied,
-                psutil.NoSuchProcess):
-            print('hit exception')
-            pass
-        except FileNotFoundError:
-            print('file not found')
+                psutil.NoSuchProcess, FileNotFoundError):
+            pass  # can't inspect this process; skip it
     print('in killjobs.py, looking for {}'.format(args.snip))
     #
     # don't kill this process or the emacs python parser
@@ -67,17 +65,24 @@ def main(args=None):
            string_cmd.find('elpy') == -1:
             proclist.append(the_tup)
 
-    proconly = [item.proc for item in proclist]
-    print(f'ready to kill {proconly}')
-    for item in proconly:
-        cmd_string = ' '.join(item.cmdline())
-        print('terminating: {}'.format(cmd_string))
-    [proc.terminate() for proc in proconly]
+    # a process can exit (or turn out to be off-limits) between being listed
+    # above and being signalled here, so skip any that fail instead of crashing
+    good_procs = []
+    for item in proclist:
+        try:
+            item.proc.terminate()
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            continue
+        good_procs.append(item.proc)
+        print('terminating: {}'.format(' '.join(item.cmdline)))
 
-    gone, alive = psutil.wait_procs(proconly, timeout=3, callback=on_terminate)
+    gone, alive = psutil.wait_procs(good_procs, timeout=3, callback=on_terminate)
 
     for p in alive:
-        p.kill()
+        try:
+            p.kill()
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            pass
 
 
 if __name__ == "__main__":

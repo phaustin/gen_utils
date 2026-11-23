@@ -8,10 +8,10 @@ is where mystmd looks when building from the .ipynb files.
 
 \b
 Usage:
-    python set_execution.py off courseware/*.md      # add execute: {skip: true}
-    python set_execution.py on  courseware/clouds.md # remove execute.skip
-    python set_execution.py status courseware/*.md   # report current state
-    python set_execution.py off courseware/a.ipynb   # .ipynb paths are mapped to .md
+    set_execution off courseware/*.md      # add execute: {skip: true}
+    set_execution on  courseware/clouds.md # remove execute.skip
+    set_execution status courseware/*.md   # report current state
+    set_execution off courseware/a.ipynb   # .ipynb paths are mapped to .md
 
 """
 
