@@ -2,7 +2,7 @@
 # builds one noarch package that installs on linux, osx and win
 context:
   name: gen_utils
-  version: "0.2.0"        # keep in step with the git tag (v0.2.0)
+  version: "0.3.1"        # keep in step with the git tag (v0.3.1)
   python_min: "3.10"
 
 package:
