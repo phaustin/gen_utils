@@ -5,6 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "gen_utils"
 description = "common utility scripts"
+readme = "README.md"
 authors = [
   { name="Philip Austin", email="paustin@eoas.ubc.ca" },
 ]
