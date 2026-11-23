@@ -56,7 +56,7 @@ rattler-build = "*"
 setuptools_scm = ">=10.3.4,<11"
 
 [tool.pixi.tasks]
-build-conda = "rattler-build build --recipe recipe/recipe.yaml --output-dir output"
+build-conda = "rm -rf output && rattler-build build --recipe recipe/recipe.yaml --output-dir output"
 
 [tool.pixi.pypi-dependencies]
 gen_utils = { path = ".", editable = true }
