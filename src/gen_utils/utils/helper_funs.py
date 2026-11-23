@@ -1,5 +1,17 @@
+import os
+
 import numpy as np
 from collections import namedtuple
+
+
+def match_key(text):
+    """Normalise text for the substring matching done by killprocs/killjobs.
+
+    On Windows, file names are case-insensitive and accept / or \\, so
+    lower-case the text and turn / into \\ (os.path.normcase).  On Linux
+    and macOS the text is returned unchanged.
+    """
+    return os.path.normcase(text)
 
 def formatvar(fmtstring='{:5.2f}'):
     """

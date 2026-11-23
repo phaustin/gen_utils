@@ -7,6 +7,10 @@ SNIP is matched as a plain substring against the full command line
 name or an argument as well as the program itself.  Each match is sent
 SIGTERM; anything still running after 3 seconds is sent SIGKILL.
 
+On Windows, matching ignores case and treats / and \\ as the same, and
+there is no gentle SIGTERM: each match is stopped immediately (psutil's
+terminate() and kill() both call TerminateProcess).
+
 Processes whose command line contains "killprocs" or "elpy" are never
 touched, and processes you are not allowed to inspect are skipped.
 
@@ -16,7 +20,7 @@ Examples:
     killprocs python        # stop every python process (careful!)
 """
 import psutil
-from .helper_funs import make_tuple
+from .helper_funs import make_tuple, match_key
 
 import argparse
 import textwrap
@@ -58,31 +62,34 @@ def main(args=None):
     #
     # don't kill this process or the emacs python parser
     #
+    snip = match_key(args.snip)
     proclist = []
     cmdlist = []
     for the_tup in keepit.values():
         string_cmd = ' '.join(the_tup.cmdline)
-        if string_cmd.find(args.snip) > -1 and \
-           string_cmd.find('killprocs') == -1 and \
-           string_cmd.find('elpy') == -1:
+        key = match_key(string_cmd)
+        if snip in key and 'killprocs' not in key and 'elpy' not in key:
             proclist.append(the_tup)
             cmdlist.append(string_cmd)
 
-    proconly = [item.proc for item in proclist]
-    good_procs=[]
-    for the_proc,the_cmd in zip(proconly,cmdlist):
+    # a process can exit (or turn out to be off-limits) between being listed
+    # above and being signalled here, so skip any that fail instead of crashing
+    good_procs = []
+    for the_tup, the_cmd in zip(proclist, cmdlist):
         try:
-            the_proc.terminate()
-            good_procs.append(the_proc)
-            cmd_string = ' '.join(the_proc.cmdline())
-            print(f'terminating: {the_cmd}')
-        except:
-            pass
+            the_tup.proc.terminate()
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            continue
+        good_procs.append(the_tup.proc)
+        print(f'terminating: {the_cmd}')
 
     gone, alive = psutil.wait_procs(good_procs, timeout=3, callback=on_terminate)
 
     for p in alive:
-        p.kill()
+        try:
+            p.kill()
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            pass
 
 
 if __name__ == "__main__":

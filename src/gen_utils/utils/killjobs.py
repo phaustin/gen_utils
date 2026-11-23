@@ -8,15 +8,20 @@ against its arguments.  That makes it handy for stopping everything
 launched from one installation or environment.  Each match is sent
 SIGTERM; anything still running after 3 seconds is sent SIGKILL.
 
+On Windows, matching ignores case and treats / and \\ as the same, and
+there is no gentle SIGTERM: each match is stopped immediately (psutil's
+terminate() and kill() both call TerminateProcess).
+
 Processes whose command line contains "killjobs" or "elpy" are never
 touched, and processes you are not allowed to inspect are skipped.
 
 Examples:
     killjobs miniforge3     # stop everything run from ~/miniforge3
     killjobs envs/work      # stop everything run from the "work" env
+                            # (envs\\work also works on Windows)
 """
 import psutil
-from .helper_funs import make_tuple
+from .helper_funs import make_tuple, match_key
 
 import argparse
 import textwrap
@@ -57,12 +62,12 @@ def main(args=None):
     #
     # don't kill this process or the emacs python parser
     #
+    snip = match_key(args.snip)
     proclist = []
     for the_tup in keepit.values():
-        string_cmd = ' '.join(the_tup.cmdline)
-        if the_tup.name.find(args.snip) > -1 and \
-           string_cmd.find('killjobs') == -1 and \
-           string_cmd.find('elpy') == -1:
+        cmd_key = match_key(' '.join(the_tup.cmdline))
+        if snip in match_key(the_tup.name) and \
+           'killjobs' not in cmd_key and 'elpy' not in cmd_key:
             proclist.append(the_tup)
 
     # a process can exit (or turn out to be off-limits) between being listed
