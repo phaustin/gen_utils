@@ -28,6 +28,7 @@ killprocs = "gen_utils.utils.killprocs:main"
 killjobs = "gen_utils.utils.killjobs:main"
 pyncdump = "gen_utils.utils.ncdump:main"
 set_execution = "gen_utils.utils.set_execution:main"
+sync_recipe_version = "gen_utils.utils.sync_recipe_version:main"
 
 [tool.hatch.version]
 source = "vcs"

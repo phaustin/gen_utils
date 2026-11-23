@@ -9,6 +9,7 @@ inspecting netCDF files, and switching MyST notebook execution on and off.
 | `killjobs`      | Stop every process whose **executable path** contains some text    |
 | `pyncdump`      | Print the metadata of a netCDF file, like `ncdump -h`              |
 | `set_execution` | Turn MyST execution on/off for jupytext-paired `.md`/`.ipynb` files |
+| `sync_recipe_version` | Set the version in `recipe/recipe.yaml` from a git `v*` tag |
 
 Every command prints its full help with `-h` or `--help`.
 
@@ -128,6 +129,31 @@ set_execution off courseware/a.ipynb   # .ipynb paths are mapped to .md
 |-------------|-----------------------------------------|
 | `--dry-run` | Show changes without writing anything   |
 | `--no-sync` | Don't update the paired `.ipynb` files  |
+
+### sync_recipe_version
+
+```
+sync_recipe_version [--tag vX.Y.Z] [--recipe PATH] [--check]
+```
+
+Sets the `version:` entry in the `context:` block of a rattler-build recipe
+from a git `v*` tag, leaving the rest of the file unchanged. Without `--tag`
+it uses the most recent `v*` tag reachable from HEAD; without `--recipe` it
+edits `recipe/recipe.yaml` in the repository root.
+
+```bash
+sync_recipe_version --tag v0.4.0   # set the version before tagging
+git commit -am "Set recipe version to 0.4.0"
+git tag v0.4.0 && git push origin main v0.4.0
+
+sync_recipe_version --check        # exit 1 if recipe and latest tag differ
+```
+
+| Option     | Effect                                                      |
+|------------|-------------------------------------------------------------|
+| `--tag`    | Take the version from this tag instead of the latest one    |
+| `--recipe` | Recipe file to update                                       |
+| `--check`  | Don't write; exit 1 if the versions differ (2 on errors)    |
 
 ## Development
 

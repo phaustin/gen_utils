@@ -2,7 +2,7 @@
 # builds one noarch package that installs on linux, osx and win
 context:
   name: gen_utils
-  version: "0.3.1"        # keep in step with the git tag (v0.3.1)
+  version: "0.3.1"        # set from the git v* tag: sync_recipe_version
   python_min: "3.10"
 
 package:
@@ -28,6 +28,7 @@ build:
       - killjobs = gen_utils.utils.killjobs:main
       - pyncdump = gen_utils.utils.ncdump:main
       - set_execution = gen_utils.utils.set_execution:main
+      - sync_recipe_version = gen_utils.utils.sync_recipe_version:main
 
 requirements:
   host:
@@ -54,6 +55,7 @@ tests:
         - gen_utils.utils.killjobs
         - gen_utils.utils.ncdump
         - gen_utils.utils.set_execution
+        - gen_utils.utils.sync_recipe_version
       pip_check: true
       python_version: ${{ python_min }}.*
   - script:
@@ -61,6 +63,7 @@ tests:
       - killjobs --help
       - pyncdump --help
       - set_execution --help
+      - sync_recipe_version --help
   - files:
       source:
         - tests/
