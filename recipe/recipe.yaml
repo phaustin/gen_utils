@@ -29,6 +29,8 @@ build:
       - pyncdump = gen_utils.utils.ncdump:main
       - set_execution = gen_utils.utils.set_execution:main
       - sync_recipe_version = gen_utils.utils.sync_recipe_version:main
+      - pdf2myst = gen_utils.utils.pdf2myst:main
+      - ports_in_use = gen_utils.utils.ports_in_use:main
 
 requirements:
   host:
@@ -56,6 +58,8 @@ tests:
         - gen_utils.utils.ncdump
         - gen_utils.utils.set_execution
         - gen_utils.utils.sync_recipe_version
+        - gen_utils.utils.pdf2myst
+        - gen_utils.utils.ports_in_use
       pip_check: true
       python_version: ${{ python_min }}.*
   - script:
@@ -64,6 +68,8 @@ tests:
       - pyncdump --help
       - set_execution --help
       - sync_recipe_version --help
+      - pdf2myst --help
+      - ports_in_use --help
   - files:
       source:
         - tests/
